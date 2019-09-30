@@ -4,7 +4,10 @@ from flask import Flask,request,jsonify
 app = Flask(__name__)
 ro = [
     {'mac': 'abcd',
-    'commands': [{'token': 1234, 'serve': 'true', 'command': 'ls', 'response': ''}]
+    'commands': [{'token': 1234, 'serve': 'true', 'command': 'ls', 'response': ''},{'token': 12345, 'serve': 'true', 'command': 'ls -l', 'response': ''}]
+    },
+    {'mac': 'efgh',
+    'commands': [{'token': 1234, 'serve': 'true', 'command': 'ls', 'response': ''},{'token': 12345, 'serve': 'true', 'command': 'ls -l', 'response': ''}]
     }
     ]
 print(ro)
@@ -22,17 +25,20 @@ def hello():
 
 
     for i in ro:
+        print("start")
+        print (request_data['mac'])
         if i['mac'] == request_data['mac']:
+            print('finish')
             for j in i['commands']:
                 if j['serve'] == 'true':
                     rrr = j['token']
                     jjj = j['command']
                     print(rrr)
                     print(jjj)
-                    request_data = {'mac': 'abcd', 'token': rrr, 'command': jjj}
+                    request_data = {'mac': i['mac'], 'token': rrr, 'command': jjj}
                     j['serve'] = 'mild'
                     break
-        break
+            break
 
 
     print(request_data)
@@ -42,4 +48,4 @@ def hello():
    # return {"ip": "192.168.1.1", "up": "25","down": "30"}
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
