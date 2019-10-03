@@ -39,4 +39,4 @@ while True:
     a = send(data)
     if 'token' in a:
         data = execute(a)
-    time.sleep(10)
+    #time.sleep(10)
