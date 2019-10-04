@@ -6,7 +6,7 @@ import random
 app = Flask(__name__)
 ro = [
     {'mac': 'abcd',
-    'commands': [{'token': 1234, 'serve': 'true', 'command': 'ls', 'tag': 'false', 'response': ''}]
+    'commands': [{'token': 1234, 'serve': 'true', 'command': 'ls -l', 'tag': 'false', 'response': ''}]
     },
     {'mac': 'efgh',
     'commands': [{'token': 1234, 'serve': 'true', 'command': 'ls -l', 'tag': 'false', 'response': ''}]
@@ -75,7 +75,7 @@ def exec(mac):
                             print('yogi')
                             print(ro)
                             i['commands'].remove(j)
-                            return jsonify({'output': response})
+                            return jsonify(response)   #({'output': response})
                     i['commands'].remove(j)
                     print(ro)
                     return jsonify({'output': 'server time out or server busy'})
