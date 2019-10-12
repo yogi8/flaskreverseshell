@@ -9,18 +9,18 @@ class Database(object):
     
     @staticmethod
     def initialize():
-        print("database initialised")
+        #print("database initialised")
         client = pymongo.MongoClient(Database.URI)
         Database.DATABASE = client["reverseshell"]
         
     @staticmethod
     def find_one(collection, query):
-        print("find_onequery")
+        #print("find_onequery")
         return Database.DATABASE[collection].find_one(query)
     
     @staticmethod
-    def update(collection, data):
-        Database.DATABASE[collection].update(data)
+    def update(collection, query, data):
+        Database.DATABASE[collection].update(query, data)
         
     @staticmethod
     def insert(collection, data):

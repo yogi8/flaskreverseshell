@@ -11,12 +11,12 @@ class Commands(object):
 
     def save_to_mongo(self):
         print("save_to_mongo()")
-        Database.update(collection='invaders',
-                        ({'mac': self.mac}, {'$push': {'commands': data=self.json()}}))
+        Database.update(collection='invaders', query = {'mac': self.mac},
+                        data={'$push': {'commands': self.json()}})
 
 
 
-     def json(self):
+    def json(self):
         return {
             'token': self.token,
             'serve': self.serve,
