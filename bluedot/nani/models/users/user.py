@@ -1,10 +1,11 @@
 import uuid
-import .errors as UserErrors
+import nani.models.users.errors as UserErrors
 from .utils import Utils
 from nani.src.database import Database
 from nani import app
 collection = app.config['USER_COLLECTION']
-print('test user.py '+ collection)
+print('test user.py' + collection)
+
 
 class User:
     def __init__(self, username, password, active=True, is_admin=False, _id=None):
@@ -30,13 +31,13 @@ class User:
         return True
 
     @staticmethod
-    def register_user(username, password):
+    def register_user(username, password, **kwargs):
         user_data = Database.find_one(collection, {'username': username})
 
         if user_data is not None:
             raise UserErrors.UserAlreadyRegisteredError("Username Already Exists")
 
-        User(username, Utils.hash_password(password)).save_to_db()
+        User(username, Utils.hash_password(password), **kwargs).save_to_db()
 
         return True
 
