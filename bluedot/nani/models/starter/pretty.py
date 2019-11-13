@@ -1,6 +1,8 @@
 #!/home/yogi/bluedot/randie/bin/python
 from nani.src.database import Database
 from datetime import datetime
+from nani import app
+collection = app.config['COLLECTION']
 
 print("pretty started")
 class Pretty(object):

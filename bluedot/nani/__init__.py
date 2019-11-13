@@ -18,5 +18,7 @@ def init_db():
 
 from nani.models.starter import appy
 from nani.models.users.views import user_blueprint
+from nani.models.groups.views import group_blueprint
 app.register_blueprint(appy)
-app.register_blueprint(user_blueprint, url_prefix="/users")
+app.register_blueprint(user_blueprint, url_prefix="/user")
+app.register_blueprint(group_blueprint, url_prefix="/group")
