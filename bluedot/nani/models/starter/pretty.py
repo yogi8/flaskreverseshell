@@ -10,6 +10,7 @@ class Pretty(object):
         self.mac = mac
         self.commands = []
         self.reporte = ''
+        # self.active = True
 
     def save_to_mongo(self):
         print("save_to_mongo()")

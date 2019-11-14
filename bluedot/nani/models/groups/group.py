@@ -16,9 +16,31 @@ class Group(object):
         group_data = Database.find_one(collection, {'gname': gname})
         if group_data is not None:
             raise GroupErrors.GroupAlreadyExistsError("Group Already Exists")
-
         Group(gname).save_to_db()
+        return True
 
+    @staticmethod
+    def delete_group(gname):
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data is None:
+            raise GroupErrors.GroupNotExistsError('Group Not Exists')
+        Database.remove(collection=collection, query={'gname': gname})
+        return True
+
+    @staticmethod
+    def make_group_active(gname):
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data['active'] is True:
+            raise GroupErrors.GroupAlreadyActiveError('Group is Already Active')
+        Database.update(collection=collection, query={'gname': gname}, data={"$set": {'active': True}})
+        return True
+
+    @staticmethod
+    def make_group_inactive(gname):
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data['active'] is False:
+            raise GroupErrors.GroupAlreadyInActiveError('Group is Already InActive')
+        Database.update(collection=collection, query={'gname': gname}, data={"$set": {'active': False}})
         return True
 
     @staticmethod
@@ -53,14 +75,6 @@ class Group(object):
         Database.update(collection=collection, query={'gname': gname}, data={'$pull': {'users': user}})
         return True
 
-    @staticmethod
-    def delete_group(gname):
-        group_data = Database.find_one(collection=collection, query={'gname': gname})
-        if group_data is None:
-            raise GroupErrors.GroupNotExistsError('Group Not Exists')
-        Database.remove(collection=collection, query={'gname': gname})
-        pass
-
     def save_to_db(self):
         Database.insert(collection, self.json())
 
@@ -82,6 +96,17 @@ class Group(object):
         return [cls(**group) for group in Database.find(collection=collection, query={'user': user})]
 
     @classmethod
-    def find_nodes_in_group(cls, group):    #error required
-        nodes = Database.find_one(collection=collection, query={'gname': group})
+    def find_nodes_in_group(cls, gname):    # error required
+        nodes = Database.find_one(collection=collection, query={'gname': gname})
         return cls(**nodes).nodes
+
+    @staticmethod
+    def find_user_in_group(gname, user):
+        group = Database.find_one(collection=collection, query={'gname': gname, 'users': user})
+        return group
+
+    @staticmethod
+    def find_user_and_node_in_same_group(node, user):
+        group = Database.find_one(collection=collection, query={'nodes': node, 'users': user})
+        if group is not None:
+            return True

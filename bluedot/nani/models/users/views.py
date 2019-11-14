@@ -6,7 +6,7 @@ import nani.models.users.errors as UserErrors
 
 user_blueprint = Blueprint('users', __name__)
 
-@user_blueprint.route('/login', methods = ['POST'])   # { 'username': 'yogi', 'password': 'yogi' }
+@user_blueprint.route('/login', methods=['POST'])   # { 'username': 'yogi', 'password': 'yogi' }
 def login_user():
     request_data = request.get_json()
     username = request_data['username']
@@ -17,11 +17,13 @@ def login_user():
             return jsonify(message='Successfully logged in'), 200
     except UserErrors.UserNotExistsError as e:
         return jsonify(message=e.message), 400
+    except UserErrors.UserisNotAuthorised as e:
+        return jsonify(message=e.message), 401
     except UserErrors.IncorrectPasswordError as e:
         return jsonify(message=e.message), 401
 
 
-@user_blueprint.route('register', methods = ['POST'])  # { 'username': 'yogi', 'password': 'yogi' }
+@user_blueprint.route('/register', methods=['POST'])  # { 'username': 'yogi', 'password': 'yogi' }
 def register_user():
     request_data = request.get_json()
     username = request_data['username']
@@ -34,7 +36,31 @@ def register_user():
         return jsonify(message=e.message), 400
 
 
-@user_blueprint.route('/logout', methods = ['POST'])
+@user_blueprint.route('/logout', methods=['POST'])
 def logout_user():
-    request_data = request.get_json()
+    # request_data = request.get_json()
+    pass
 
+
+@user_blueprint.route('/active/<string:username>', methods=['POST'])
+def make_user_active(username):
+    try:
+        if User.make_user_active(username):
+            return jsonify(message='Successfully User is made Active'), 200
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
+    except UserErrors.UserisAlreadyActiveError as e:
+        return jsonify(message=e.message), 400
+    return True
+
+
+@user_blueprint.route('/inactive/<string:username>', methods=['POST'])
+def make_user_active(username):
+    try:
+        if User.make_user_inactive(username):
+            return jsonify(message='Successfully User is made InActive'), 200
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
+    except UserErrors.UserisAlreadyInactiveError as e:
+        return jsonify(message=e.message), 400
+    return True

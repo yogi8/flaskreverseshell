@@ -8,6 +8,7 @@ from nani.src.database import Database
 from .pretty import Pretty, statuss
 from .commands import Commands
 from . import appy
+from nani.models.groups.group import Group
 
 collection = app.config['COLLECTION']
 timeout = app.config['TIMEOUT']
@@ -62,7 +63,12 @@ def hello():
 @appy.route('/store/<string:mac>', methods=['POST'])  # { 'command': "ls -l" }
 def exec(mac):
     request_data = request.get_json()
-
+    '''
+    user = 'JWT'
+    auth = Group.find_user_and_node_in_same_group(mac, user)
+    if auth is not True:
+        return jsonify(message='You are not Authorised to access this system'), 401
+    '''
     data = Database.find_one(collection, {'mac': mac})
     if data is not None:
         rand = random.randint(1000, 9999)

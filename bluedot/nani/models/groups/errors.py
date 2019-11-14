@@ -25,3 +25,11 @@ class UserNotExistsInGroupError(GroupError):
 
 class NodeNotExistsInaGroupError(GroupError):
     pass
+
+
+class GroupAlreadyActiveError(GroupError):
+    pass
+
+
+class GroupAlreadyInActiveError(GroupError):
+    pass

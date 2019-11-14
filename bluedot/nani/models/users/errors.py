@@ -12,3 +12,12 @@ class IncorrectPasswordError(UserError):
 
 class UserAlreadyRegisteredError(UserError):
     pass
+
+class UserisAlreadyActiveError(UserError):
+    pass
+
+class UserisAlreadyInactiveError(UserError):
+    pass
+
+class UserisNotAuthorised(UserError):
+    pass

@@ -25,6 +25,9 @@ class User:
         if user_data is None:
             raise UserErrors.UserNotExistsError("Your User doesn't Exist")
 
+        if user_data['active'] is False:
+            raise UserErrors.UserisNotAuthorised("You are not authorised to Log In")
+
         if not Utils.check_hashed_password(password, user_data['password']):
             raise UserErrors.IncorrectPasswordError("Your Password was wrong")
 
@@ -39,6 +42,26 @@ class User:
 
         User(username, Utils.hash_password(password), **kwargs).save_to_db()
 
+        return True
+
+    @staticmethod
+    def make_user_active(username):
+        user_data = Database.find_one(collection, {'username': username})
+        if user_data is None:
+            raise UserErrors.UserNotExistsError("Your User doesn't Exist")
+        if user_data['active'] is True:
+            raise UserErrors.UserisAlreadyActiveError("User is Already Active")
+        Database.update(collection=collection, query={'username': username}, data={"$set": {'active': True}})
+        return True
+
+    @staticmethod
+    def make_user_inactive(username):
+        user_data = Database.find_one(collection, {'username': username})
+        if user_data is None:
+            raise UserErrors.UserNotExistsError("Your User doesn't Exist")
+        if user_data['active'] is False:
+            raise UserErrors.UserisAlreadyInactiveError("User is Already InActive")
+        Database.update(collection=collection, query={'username': username}, data={"$set": {'active': False}})
         return True
 
     def save_to_db(self):
