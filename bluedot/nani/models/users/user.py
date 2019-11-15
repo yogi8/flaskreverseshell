@@ -18,8 +18,8 @@ class User:
     def __repr__(self):
         return "<Username {}>".format(self.username)
 
-    @staticmethod
-    def is_login_valid(username, password):
+    @classmethod
+    def is_login_valid(cls, username, password):
         user_data = Database.find_one(collection, {'username': username})
 
         if user_data is None:
@@ -31,7 +31,7 @@ class User:
         if not Utils.check_hashed_password(password, user_data['password']):
             raise UserErrors.IncorrectPasswordError("Your Password was wrong")
 
-        return True
+        return cls(**user_data)
 
     @staticmethod
     def register_user(username, password, **kwargs):

@@ -1,4 +1,9 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import (
+    jwt_required, create_access_token,
+    jwt_refresh_token_required, create_refresh_token,
+    get_jwt_identity
+)
 from nani import app
 from nani.src.database import Database
 from .user import User
@@ -13,8 +18,12 @@ def login_user():
     password = request_data['password']
 
     try:
-        if User.is_login_valid(username, password):
-            return jsonify(message='Successfully logged in'), 200
+        user = User.is_login_valid(username, password)
+        if user:
+            del user.password
+            access_token = create_access_token(identity=user)
+            # refresh_token = create_refresh_token(identity=user)
+            return jsonify(access_token=access_token), 200
     except UserErrors.UserNotExistsError as e:
         return jsonify(message=e.message), 400
     except UserErrors.UserisNotAuthorised as e:

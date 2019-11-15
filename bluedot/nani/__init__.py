@@ -1,10 +1,24 @@
 from flask import Flask
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_claims
+)
 import config
 from nani.src.database import Database
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
 app.secret_key = 'yogi'
+
+jwt = JWTManager(app)
+
+@jwt.user_claims_loader
+def add_claims_to_access_token(user):
+    return {'is_admin': user.is_admin}
+
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user.username
 
 @app.before_first_request
 def init_db():
