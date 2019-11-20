@@ -1,13 +1,18 @@
 from flask import Blueprint, request, jsonify
-from nani import app
-from nani.src.database import Database
+from flask_jwt_extended import (
+    jwt_required, get_jwt_identity
+)
+from nani import admin_required
 from .group import Group
 import nani.models.groups.errors as GroupErrors
+from nani.models.starter.pretty import stattus
+
 
 group_blueprint = Blueprint('groups', __name__)
 
 
 @group_blueprint.route('/add/<string:gname>', methods=['POST'])
+@admin_required
 def add_group(gname):
     try:
         if Group.create_group(gname):
@@ -17,6 +22,7 @@ def add_group(gname):
 
 
 @group_blueprint.route('/delete/<string:gname>', methods=['POST'])
+@admin_required
 def delete_group(gname):
     try:
         if Group.delete_group(gname):
@@ -26,6 +32,7 @@ def delete_group(gname):
 
 
 @group_blueprint.route('/active/<string:gname>', methods=['POST'])
+@admin_required
 def make_group_active(gname):
     try:
         if Group.make_group_active(gname):
@@ -35,6 +42,7 @@ def make_group_active(gname):
 
 
 @group_blueprint.route('/inactive/<string:gname>', methods=['POST'])
+@admin_required
 def make_group_inactive(gname):
     try:
         if Group.make_group_inactive(gname):
@@ -44,6 +52,7 @@ def make_group_inactive(gname):
 
 
 @group_blueprint.route('/addnode/<string:gname>/<string:node>', methods=['POST'])
+@admin_required
 def add_node_to_group(gname, node):
     try:
         if Group.add_node_to_group(gname, node):
@@ -53,6 +62,7 @@ def add_node_to_group(gname, node):
 
 
 @group_blueprint.route('/delnode/<string:gname>/<string:node>', methods=['POST'])
+@admin_required
 def del_node_from_group(gname, node):
     try:
         if Group.remove_node_from_group(gname, node):
@@ -62,6 +72,7 @@ def del_node_from_group(gname, node):
 
 
 @group_blueprint.route('/adduser/<string:gname>/<string:user>', methods=['POST'])
+@admin_required
 def add_user_to_group(gname, user):
     try:
         if Group.add_user_to_group(gname, user):
@@ -71,6 +82,7 @@ def add_user_to_group(gname, user):
 
 
 @group_blueprint.route('/deluser/<string:gname>/<string:user>', methods=['POST'])
+@admin_required
 def del_user_from_group(gname, user):
     try:
         if Group.remove_user_from_group(gname, user):
@@ -79,8 +91,11 @@ def del_user_from_group(gname, user):
         return jsonify(message=e.message), 400
 
 
-@group_blueprint.route('/listbyuser/<string:user>', methods=['GET'])   # remove <string:user> after JWT implementation.
-def user_groups(user):
+@group_blueprint.route('/listbyuser', methods=['GET'])
+@jwt_required
+def user_groups():
+    user = get_jwt_identity()
+    print(user)
     s = []
     grouplist = Group.find_groups_by_user(user)
     for i in grouplist:
@@ -90,11 +105,26 @@ def user_groups(user):
 
 
 @group_blueprint.route('/nodelist/<string:gname>', methods=['GET'])
+@jwt_required
 def node_list(gname):
-    # user needs to be present in that group before query after JWT implementation.
-    user = 'JWT'
+    user = get_jwt_identity()
     auth = Group.find_user_in_group(gname, user)
     if auth is None:
         return jsonify(message='You are not Authorised for this Group'), 401
     nodes = Group.find_nodes_in_group(gname)
     return jsonify(message=nodes), 200
+
+
+@group_blueprint.route('/online/nodelist/<string:gname>', methods=['GET'])
+@jwt_required
+def online_node_list(gname):
+    user = get_jwt_identity()
+    auth = Group.find_user_in_group(gname, user)
+    if auth is None:
+        return jsonify(message='You are not Authorised for this Group'), 401
+    nodes = Group.find_nodes_in_group(gname)
+    onlinenodes = []
+    for i in nodes:
+        if stattus(i) is True:
+            onlinenodes.append(i)
+    return jsonify(message=onlinenodes), 200

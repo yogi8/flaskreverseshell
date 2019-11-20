@@ -1,6 +1,9 @@
 #!/home/yogi/bluedot/randie/bin/python
 
 from flask import request, jsonify, url_for, redirect
+from flask_jwt_extended import (
+    jwt_required, get_jwt_identity
+)
 from nani import app
 from datetime import datetime, timedelta
 import random
@@ -61,14 +64,14 @@ def hello():
 
 
 @appy.route('/store/<string:mac>', methods=['POST'])  # { 'command': "ls -l" }
+@jwt_required
 def exec(mac):
     request_data = request.get_json()
-    '''
-    user = 'JWT'
+    user = get_jwt_identity()
     auth = Group.find_user_and_node_in_same_group(mac, user)
     if auth is not True:
         return jsonify(message='You are not Authorised to access this system'), 401
-    '''
+
     data = Database.find_one(collection, {'mac': mac})
     if data is not None:
         rand = random.randint(1000, 9999)

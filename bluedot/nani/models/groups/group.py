@@ -96,9 +96,11 @@ class Group(object):
         return [cls(**group) for group in Database.find(collection=collection, query={'user': user})]
 
     @classmethod
-    def find_nodes_in_group(cls, gname):    # error required
-        nodes = Database.find_one(collection=collection, query={'gname': gname})
-        return cls(**nodes).nodes
+    def find_nodes_in_group(cls, gname):
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data is None:
+            raise GroupErrors.GroupNotExistsError('Group Not Exists')
+        return cls(**group_data).nodes
 
     @staticmethod
     def find_user_in_group(gname, user):

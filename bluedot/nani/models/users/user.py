@@ -64,6 +64,31 @@ class User:
         Database.update(collection=collection, query={'username': username}, data={"$set": {'active': False}})
         return True
 
+    @staticmethod
+    def change_username(username, newusername):
+        user_data = Database.find_one(collection, {'username': username})
+        if user_data is None:
+            raise UserErrors.UserNotExistsError("Your User doesn't Exist")
+        Database.update(collection=collection, query={'username': username}, data={"$set": {'username': newusername}})
+        return True
+
+    @staticmethod
+    def change_password(username, password):
+        user_data = Database.find_one(collection, {'username': username})
+        if user_data is None:
+            raise UserErrors.UserNotExistsError("Your User doesn't Exist")
+        Database.update(collection=collection, query={'username': username},
+                        data={"$set": {'password': Utils.hash_password(password)}})
+        return True
+
+    @staticmethod
+    def delete_user(username):
+        user_data = Database.find_one(collection, {'username': username})
+        if user_data is None:
+            raise UserErrors.UserNotExistsError("Your User doesn't Exist")
+        Database.remove(collection=collection, query={'username': username})
+        return True
+
     def save_to_db(self):
         Database.insert(collection, self.json())
 

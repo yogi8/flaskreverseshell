@@ -25,9 +25,10 @@ class Pretty(object):
         }
 
 def statuss(data):
-    deadline = 60
-    print(data['mac'])
-    print(data['reporte'])
+    # deadline = 60
+    deadline = app.config['LASTREACH']
+    # print(data['mac'])
+    # print(data['reporte'])
     d = data['reporte']
     e = datetime.now()
     f = e - d
@@ -38,3 +39,17 @@ def statuss(data):
     else:
         print('router is offline')
         return False
+
+def stattus(mac):
+    data = Database.find_one(collection, {'mac': mac})
+    if data is not None:
+        # print(data['mac'])
+        # print(data['reporte'])
+        d = data['reporte']
+        e = datetime.now()
+        f = e - d
+        g = int(f.total_seconds())
+        if g <= lastreach:
+            return True
+        else:
+            return False
