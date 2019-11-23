@@ -2,6 +2,7 @@
 from nani.src.database import Database
 from datetime import datetime
 from nani import app
+from .errors import NodeNotExistsError
 collection = app.config['COLLECTION']
 
 print("pretty started")
@@ -11,6 +12,13 @@ class Pretty(object):
         self.commands = []
         self.reporte = ''
         # self.active = True
+
+    @staticmethod
+    def is_mac_valid(mac):
+        data = Database.find_one(collection, {'mac': mac})
+        if data is None:
+            raise NodeNotExistsError('System Does not Exists with that name')
+        return True
 
     def save_to_mongo(self):
         print("save_to_mongo()")
@@ -42,6 +50,7 @@ def statuss(data):
 
 def stattus(mac):
     data = Database.find_one(collection, {'mac': mac})
+    lastreach = app.config['LASTREACH']
     if data is not None:
         # print(data['mac'])
         # print(data['reporte'])

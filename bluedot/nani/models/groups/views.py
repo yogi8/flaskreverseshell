@@ -91,20 +91,19 @@ def del_user_from_group(gname, user):
         return jsonify(message=e.message), 400
 
 
-@group_blueprint.route('/listbyuser', methods=['GET'])
+@group_blueprint.route('/listbyuser', methods=['GET'])     # lists only active groups with that user
 @jwt_required
 def user_groups():
     user = get_jwt_identity()
-    print(user)
     s = []
     grouplist = Group.find_groups_by_user(user)
     for i in grouplist:
-        if i['active'] is True:
-            s.append(i['gname'])
+        if i.active is True:
+            s.append(i.gname)
     return jsonify(message=s), 200
 
 
-@group_blueprint.route('/nodelist/<string:gname>', methods=['GET'])
+@group_blueprint.route('/nodelist/<string:gname>', methods=['GET'])       # lists online and offline nodes
 @jwt_required
 def node_list(gname):
     user = get_jwt_identity()
@@ -115,14 +114,20 @@ def node_list(gname):
     return jsonify(message=nodes), 200
 
 
-@group_blueprint.route('/online/nodelist/<string:gname>', methods=['GET'])
+@group_blueprint.route('/online/nodelist/<string:gname>', methods=['GET'])   # lists only online nodes
 @jwt_required
 def online_node_list(gname):
     user = get_jwt_identity()
-    auth = Group.find_user_in_group(gname, user)
+    try:
+        auth = Group.find_user_in_group(gname, user)
+    except GroupErrors.GroupNotExistsError as e:
+        return jsonify(message=e.message), 400
     if auth is None:
         return jsonify(message='You are not Authorised for this Group'), 401
-    nodes = Group.find_nodes_in_group(gname)
+    try:
+        nodes = Group.find_nodes_in_group(gname)
+    except GroupErrors.GroupNotExistsError as e:
+        return jsonify(message=e.message), 400
     onlinenodes = []
     for i in nodes:
         if stattus(i) is True:

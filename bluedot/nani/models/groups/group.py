@@ -1,3 +1,4 @@
+import uuid
 from nani import app
 from nani.src.database import Database
 import nani.models.groups.errors as GroupErrors
@@ -5,11 +6,12 @@ collection = app.config['GROUP_COLLECTION']
 
 
 class Group(object):
-    def __init__(self, gname, active=True, nodes=None, users=None):
+    def __init__(self, gname, active=True, nodes=None, users=None, _id=None):
         self.gname = gname
         self.active = active
         self.nodes = [] if nodes is None else nodes
         self.users = [] if users is None else users
+        self._id = uuid.uuid4().hex if _id is None else _id
 
     @staticmethod
     def create_group(gname):
@@ -93,7 +95,7 @@ class Group(object):
 
     @classmethod
     def find_groups_by_user(cls, user):
-        return [cls(**group) for group in Database.find(collection=collection, query={'user': user})]
+        return [cls(**group) for group in Database.find(collection=collection, query={'users': user})]
 
     @classmethod
     def find_nodes_in_group(cls, gname):
@@ -104,6 +106,10 @@ class Group(object):
 
     @staticmethod
     def find_user_in_group(gname, user):
+        # in active users can access their groups
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data is None:
+            raise GroupErrors.GroupNotExistsError('Group Not Exists')
         group = Database.find_one(collection=collection, query={'gname': gname, 'users': user})
         return group
 

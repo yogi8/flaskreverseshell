@@ -2,7 +2,7 @@
 
 from flask import request, jsonify, url_for, redirect
 from flask_jwt_extended import (
-    jwt_required, get_jwt_identity
+    jwt_required, get_jwt_identity, get_jwt_claims
 )
 from nani import app
 from datetime import datetime, timedelta
@@ -12,6 +12,7 @@ from .pretty import Pretty, statuss
 from .commands import Commands
 from . import appy
 from nani.models.groups.group import Group
+from .errors import NodeNotExistsError
 
 collection = app.config['COLLECTION']
 timeout = app.config['TIMEOUT']
@@ -67,10 +68,17 @@ def hello():
 @jwt_required
 def exec(mac):
     request_data = request.get_json()
+    try:
+        if Pretty.is_mac_valid(mac):
+            pass
+    except NodeNotExistsError as e:
+        return jsonify(message=e.message), 400
     user = get_jwt_identity()
     auth = Group.find_user_and_node_in_same_group(mac, user)
-    if auth is not True:
-        return jsonify(message='You are not Authorised to access this system'), 401
+    claims = get_jwt_claims()
+    if claims['is_admin'] is not True:
+        if auth is not True:
+            return jsonify(message='You are not Authorised to access this system'), 401
 
     data = Database.find_one(collection, {'mac': mac})
     if data is not None:

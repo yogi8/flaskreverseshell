@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import requests
+import time
 import base64
 
 '''
@@ -100,12 +101,14 @@ class Retro:
     def login(self):
         url = 'http://192.168.1.5:5000/user/login'
         data = {'username': self.username, 'password': self.password}
-        response = self.requeste(url, data=data, post=True)
+        response = requests.post(url, json=data)
         a = response.json()
+        print(a)
         if 'access_token' in a:
             self.access_token = a['access_token']
+            print(self.username + 'Logged in succesfully')
             return True
-        print(a)
+
 
     @if_logged_in
     def logout(self):
@@ -113,6 +116,7 @@ class Retro:
         response = self.requeste(url, post=True)
         print(response.json())
         self.logged_in = False
+        print(self.username + 'Logged out succesfully')
         return True
 
     def requeste(self, url, data=None, get=None, post=None):
@@ -145,19 +149,85 @@ class Retro:
 
     @if_logged_in
     def retro(self):
-        pass
+        glist = True
+        nlist = True
+        while True:
+            gname = ''
+            time.sleep(5)
+            grouplist = self.grouplist()
+            print(grouplist)
+            if grouplist:
+                print(grouplist)
+                gname = input('>>Type the GroupName')
+            if glist is True and not grouplist:
+                print('No groups Found')
+                glist = False
+            while gname:
+                nodename = ''
+                time.sleep(5)
+                response = self.nodelist(gname)
+                if response.status_code == 200 and response.json()['message']:
+                    a = response.json()
+                    nodelist = a['message']
+                    print(nodelist)
+                    while True:
+                        nodename = input('>>Type any System to Login or Enter back to go back')
+                        if nodename not in nodelist and nodename != 'back':
+                            print('Please Enter Exact Name')
+                        else:
+                            break
+                    if nodename == 'back':
+                        glist = True
+                        break
+                elif response.status_code == 200:
+                    if nlist is True:
+                        print("No Devices Found")
+                        nlist = False
+                if not response.status_code == 200:
+                    a = response.json()
+                    nodelist = a['message']
+                    print(nodelist)
+                    glist = True
+                    break
+                while nodename:
+                    vale = input('>')
+                    data = {'command': vale}
+                    if vale[0:8] == 'download':
+                        self.file_output(data=data, mac=nodename)
+                    elif vale.strip() == 'quit':
+                        nlist = True
+                        break
+                    elif vale.strip() == 'logout':
+                        self.logout()
+                        return None
+                    else:
+                        self.command_output(data=data, mac=nodename)
+        '''
+        mac = 'abcd'
+        while True:
+            vale = input('>')
+            data = {'command': vale}
+            if vale[0:8] == 'download':
+                self.file_output(data, mac)
+            else:
+                self.command_output(data, mac)
+        '''
 
     @if_logged_in
     def grouplist(self):
-        url = 'http://192.168.1.5:5000/user/listbyuser'
+        url = 'http://192.168.1.5:5000/group/listbyuser'
         response = self.requeste(url, get=True)
         a = response.json()
+        print(a)
         return a['message']
 
     @if_logged_in
     def nodelist(self, gname):
-        url = 'http://192.168.1.5:5000/user/online/nodelist/' + gname
+        url = 'http://192.168.1.5:5000/group/online/nodelist/' + gname
         response = self.requeste(url, get=True)
-        # a = response.json()
+        #a = response.json()
         # return a['message']
         return response
+
+dad = Retro(username='yogi',password='yogi123')
+dad.retro()

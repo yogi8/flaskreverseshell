@@ -30,6 +30,7 @@ def admin_required(fn):
 
 @jwt.user_claims_loader
 def add_claims_to_access_token(user):
+    print(user.is_admin)
     return {'is_admin': user.is_admin}
 
 
