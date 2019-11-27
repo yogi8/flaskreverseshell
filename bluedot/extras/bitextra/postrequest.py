@@ -202,16 +202,6 @@ class Retro:
                         return None
                     else:
                         self.command_output(data=data, mac=nodename)
-        '''
-        mac = 'abcd'
-        while True:
-            vale = input('>')
-            data = {'command': vale}
-            if vale[0:8] == 'download':
-                self.file_output(data, mac)
-            else:
-                self.command_output(data, mac)
-        '''
 
     @if_logged_in
     def grouplist(self):
@@ -229,5 +219,5 @@ class Retro:
         # return a['message']
         return response
 
-dad = Retro(username='yogi',password='yogi123')
-dad.retro()
+#dad = Retro(username='yogi',password='yogi123')
+#dad.retro()

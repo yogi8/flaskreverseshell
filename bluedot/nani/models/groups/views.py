@@ -103,7 +103,7 @@ def user_groups():
     return jsonify(message=s), 200
 
 
-@group_blueprint.route('/nodelist/<string:gname>', methods=['GET'])       # lists online and offline nodes
+@group_blueprint.route('/nodelist/<string:gname>', methods=['GET'])       # lists online and offline nodes by group
 @jwt_required
 def node_list(gname):
     user = get_jwt_identity()
@@ -114,7 +114,7 @@ def node_list(gname):
     return jsonify(message=nodes), 200
 
 
-@group_blueprint.route('/online/nodelist/<string:gname>', methods=['GET'])   # lists only online nodes
+@group_blueprint.route('/online/nodelist/<string:gname>', methods=['GET'])   # lists only online nodes by group
 @jwt_required
 def online_node_list(gname):
     user = get_jwt_identity()

@@ -4,6 +4,7 @@ from .utils import Utils
 from nani.src.database import Database
 from nani import app
 collection = app.config['USER_COLLECTION']
+collection1 = app.config['GROUP_COLLECTION']
 print('test user.py' + collection)
 
 
@@ -87,6 +88,7 @@ class User:
         if user_data is None:
             raise UserErrors.UserNotExistsError("Your User doesn't Exist")
         Database.remove(collection=collection, query={'username': username})
+        Database.updateMany(collection=collection1, query={}, data={'$pull': {'users': user}})
         return True
 
     def save_to_db(self):

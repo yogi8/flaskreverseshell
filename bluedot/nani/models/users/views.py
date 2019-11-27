@@ -35,15 +35,16 @@ def login_user():
         return jsonify(message=e.message), 401
 
 
-@user_blueprint.route('/register', methods=['POST'])  # { 'username': 'yogi', 'password': 'yogi' }
+@user_blueprint.route('/register', methods=['POST'])  # { 'username': 'yogi', 'password': 'yogi', 'is_admin': False }
 @admin_required
 def register_user():
     request_data = request.get_json()
     username = request_data['username']
     password = request_data['password']
+    is_admin = request_data['is_admin'] if request_data['is_admin'] else False
 
     try:
-        if User.register_user(username, password):
+        if User.register_user(username, password, is_admin):
             return jsonify(message='Successfully Registered'), 200
     except UserErrors.UserAlreadyRegisteredError as e:
         return jsonify(message=e.message), 400
@@ -72,6 +73,8 @@ def make_user_active(username):
 @user_blueprint.route('/inactive/<string:username>', methods=['POST'])
 @admin_required
 def make_user_inactive(username):
+    if username is 'admin':
+        return jsonify(message='Admin can not be made InActive'), 400
     try:
         if User.make_user_inactive(username):
             return jsonify(message='Successfully User is made InActive'), 200
@@ -83,6 +86,8 @@ def make_user_inactive(username):
 
 @user_blueprint.route('/changeusername/<string:username>/<string:newusername>', methods=['POST'])
 def change_username(username, newusername):
+    if username is 'admin':
+        return jsonify(message='Admin Username can not be changed'), 400
     pass
 
 
@@ -94,4 +99,10 @@ def change_password(username, password):
 @user_blueprint.route('/delete/<string:username>', methods=['POST'])
 @admin_required
 def delete_user(username):
-    pass
+    if username is 'admin':
+        return jsonify(message='Admin can not be Deleted'), 400
+    try:
+        if User.delete_user(username):
+            return jsonify(message='User Deleted Successfully'), 200
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400

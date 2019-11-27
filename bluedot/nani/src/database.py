@@ -21,6 +21,10 @@ class Database(object):
     @staticmethod
     def update(collection, query, data):
         Database.DATABASE[collection].update(query, data)
+
+    @staticmethod
+    def updateMany(collection, query, data):
+        Database.DATABASE[collection].updateMany(query, data)
         
     @staticmethod
     def insert(collection, data):
