@@ -33,3 +33,4 @@ class GroupAlreadyActiveError(GroupError):
 
 class GroupAlreadyInActiveError(GroupError):
     pass
+

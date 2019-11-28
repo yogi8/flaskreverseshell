@@ -97,7 +97,7 @@ def init_db():
         print('jkjdjn')
         User.register_user(username='admin', password='admin123', is_admin=True)
 
-from nani.models.starter import appy
+from nani.models.starter.aap import appy
 from nani.models.users.views import user_blueprint
 from nani.models.groups.views import group_blueprint
 app.register_blueprint(appy)

@@ -118,7 +118,6 @@ class Retro:
         response = self.requeste(url, post=True)
         a = response.json()
         print(a)
-        pass
 
     @if_logged_in
     def del_node_from_group(self, gname, node):
@@ -126,7 +125,6 @@ class Retro:
         response = self.requeste(url, post=True)
         a = response.json()
         print(a)
-        pass
 
     @if_logged_in
     def add_user_to_group(self, gname, user):
@@ -134,7 +132,6 @@ class Retro:
         response = self.requeste(url, post=True)
         a = response.json()
         print(a)
-        pass
 
     @if_logged_in
     def del_user_from_group(self, gname, user):
@@ -142,7 +139,6 @@ class Retro:
         response = self.requeste(url, post=True)
         a = response.json()
         print(a)
-        pass
 
     @if_logged_in
     def add_node(self,node):
@@ -150,4 +146,12 @@ class Retro:
 
     @if_logged_in
     def del_node(self, node):   # deleting a node should be also deleted from all groups
+        pass
+
+    @if_logged_in
+    def make_node_active(self, node):
+        pass
+
+    @if_logged_in
+    def make_group_inactive(self, node):
         pass

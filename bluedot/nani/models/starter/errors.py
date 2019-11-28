@@ -9,3 +9,9 @@ class NodeNotExistsError(NodeError):
 
 class NodeAlreadyExistsError(NodeError):
     pass
+
+class NodeAlreadyActiveError(NodeError):
+    pass
+
+class NodeAlreadyInActiveError(NodeError):
+    pass

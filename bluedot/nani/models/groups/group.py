@@ -2,7 +2,11 @@ import uuid
 from nani import app
 from nani.src.database import Database
 import nani.models.groups.errors as GroupErrors
+import nani.models.users.errors as UserErrors
+import nani.models.starter.errors as NodeErrors
 collection = app.config['GROUP_COLLECTION']
+node_table = app.config['COLLECTION']
+user_table = app.config['USER_COLLECTION']
 
 
 class Group(object):
@@ -15,7 +19,7 @@ class Group(object):
 
     @staticmethod
     def create_group(gname):
-        group_data = Database.find_one(collection, {'gname': gname})
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
         if group_data is not None:
             raise GroupErrors.GroupAlreadyExistsError("Group Already Exists")
         Group(gname).save_to_db()
@@ -47,32 +51,56 @@ class Group(object):
 
     @staticmethod
     def add_node_to_group(gname, node):
-        node_data = Database.find_one(collection=collection, query={'nodes': node})
-        if node_data is not None:
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data is None:
+            raise GroupErrors.GroupNotExistsError('Group Not Exists')
+        node_data = Database.find_one(collection=node_table, query={'mac': node})
+        if node_data is None:
+            raise NodeErrors.NodeNotExistsError('No Node with that name')
+        group_node_data = Database.find_one(collection=collection, query={'nodes': node})
+        if group_node_data is not None:
             raise GroupErrors.NodeExistsInaGroupError(node + 'Already Exists in a group')
         Database.update(collection=collection, query={'gname': gname}, data={'$push': {'nodes': node}})
         return True
 
     @staticmethod
-    def add_user_to_group(gname, user):
-        user_data = Database.find_one(collection=collection, query={'gname': gname, 'users': user})
-        if user_data is not None:
-            raise GroupErrors.UserExistsInGroupError('User Already Exists in this group')
-        Database.update(collection=collection, query={'gname': gname}, data={'$push': {'users': user}})
-        return True
-
-    @staticmethod
     def remove_node_from_group(gname, node):
-        node_data = Database.find_one(collection=collection, query={'nodes': node})
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data is None:
+            raise GroupErrors.GroupNotExistsError('Group Not Exists')
+        node_data = Database.find_one(collection=node_table, query={'mac': node})
         if node_data is None:
+            raise NodeErrors.NodeNotExistsError('No Node with name')
+        group_node_data = Database.find_one(collection=collection, query={'nodes': node})
+        if group_node_data is None:
             raise GroupErrors.NodeNotExistsInaGroupError(node + 'Not Exists in a group')
         Database.update(collection=collection, query={'gname': gname}, data={'$pull': {'nodes': node}})
         return True
 
     @staticmethod
-    def remove_user_from_group(gname, user):
-        user_data = Database.find_one(collection=collection, query={'gname': gname, 'users': user})
+    def add_user_to_group(gname, user):
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data is None:
+            raise GroupErrors.GroupNotExistsError('Group Not Exists')
+        user_data = Database.find_one(collection=user_table, query={'username': user})
         if user_data is None:
+            raise UserErrors.UserNotExistsError("No Users with that name")
+        group_user_data = Database.find_one(collection=collection, query={'gname': gname, 'users': user})
+        if group_user_data is not None:
+            raise GroupErrors.UserExistsInGroupError('User Already Exists in this group')
+        Database.update(collection=collection, query={'gname': gname}, data={'$push': {'users': user}})
+        return True
+
+    @staticmethod
+    def remove_user_from_group(gname, user):
+        group_data = Database.find_one(collection=collection, query={'gname': gname})
+        if group_data is None:
+            raise GroupErrors.GroupNotExistsError('Group Not Exists')
+        user_data = Database.find_one(collection=user_table, query={'username': user})
+        if user_data is None:
+            raise UserErrors.UserNotExistsError("No Users with that name")
+        group_user_data = Database.find_one(collection=collection, query={'gname': gname, 'users': user})
+        if group_user_data is None:
             raise GroupErrors.UserNotExistsInGroupError('User Not Exists in this group')
         Database.update(collection=collection, query={'gname': gname}, data={'$pull': {'users': user}})
         return True

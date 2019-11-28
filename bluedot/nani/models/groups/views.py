@@ -5,6 +5,7 @@ from flask_jwt_extended import (
 from nani import admin_required
 from .group import Group
 import nani.models.groups.errors as GroupErrors
+import nani.models.users.errors as UserErrors
 from nani.models.starter.pretty import stattus
 
 
@@ -57,6 +58,10 @@ def add_node_to_group(gname, node):
     try:
         if Group.add_node_to_group(gname, node):
             return jsonify(message='Successfully Node Added to Group'), 200
+    except GroupErrors.GroupNotExistsError as e:
+        return jsonify(message=e.message), 400
+    except GroupErrors.NodeNotExistsError as e:
+        return jsonify(message=e.message), 400
     except GroupErrors.NodeExistsInaGroupError as e:
         return jsonify(message=e.message), 400
 
@@ -67,6 +72,10 @@ def del_node_from_group(gname, node):
     try:
         if Group.remove_node_from_group(gname, node):
             return jsonify(message='Successfully Node Removed from Group'), 200
+    except GroupErrors.GroupNotExistsError as e:
+        return jsonify(message=e.message), 400
+    except GroupErrors.NodeNotExistsError as e:
+        return jsonify(message=e.message), 400
     except GroupErrors.NodeNotExistsInaGroupError as e:
         return jsonify(message=e.message), 400
 
@@ -77,6 +86,10 @@ def add_user_to_group(gname, user):
     try:
         if Group.add_user_to_group(gname, user):
             return jsonify(message='Successfully User Added to Group'), 200
+    except GroupErrors.GroupNotExistsError as e:
+        return jsonify(message=e.message), 400
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
     except GroupErrors.UserExistsInGroupError as e:
         return jsonify(message=e.message), 400
 
@@ -87,6 +100,10 @@ def del_user_from_group(gname, user):
     try:
         if Group.remove_user_from_group(gname, user):
             return jsonify(message='Successfully User Removed from Group'), 200
+    except GroupErrors.GroupNotExistsError as e:
+        return jsonify(message=e.message), 400
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
     except GroupErrors.UserNotExistsInGroupError as e:
         return jsonify(message=e.message), 400
 
