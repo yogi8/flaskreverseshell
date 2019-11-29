@@ -34,7 +34,7 @@ class Group(object):
         return True
 
     @staticmethod
-    def make_group_active(gname):
+    def make_group_active(gname):       # as there is node in only one group, making group inactive should make nodes under that group also inactive
         group_data = Database.find_one(collection=collection, query={'gname': gname})
         if group_data['active'] is True:
             raise GroupErrors.GroupAlreadyActiveError('Group is Already Active')
@@ -134,7 +134,7 @@ class Group(object):
 
     @staticmethod
     def find_user_in_group(gname, user):
-        # in active users can access their groups
+        # in active users can access their groups if he is logged in
         group_data = Database.find_one(collection=collection, query={'gname': gname})
         if group_data is None:
             raise GroupErrors.GroupNotExistsError('Group Not Exists')

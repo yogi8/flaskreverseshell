@@ -21,6 +21,8 @@ class Pretty(object):
         data = Database.find_one(collection=collection, query={'mac': mac})
         if data is None:
             raise NodeErrors.NodeNotExistsError('System Does not Exists with that name')
+        if data['active'] is False:
+            raise NodeErrors.NodeInActiveError('System is InActive and can not be accessed')
         return True
 
     def save_to_mongo(self):
@@ -32,7 +34,7 @@ class Pretty(object):
     def create_node(mac):
         data = Database.find_one(collection=collection, query={'mac': mac})
         if data is not None:
-            raise NodeErrors.NodeNotExistsError('System Already Exists with that name')
+            raise NodeErrors.NodeAlreadyExistsError('System Already Exists with that name')
         Pretty(mac=mac).save_to_mongo()
         return True
 

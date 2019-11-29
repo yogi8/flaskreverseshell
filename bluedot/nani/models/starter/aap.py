@@ -4,15 +4,13 @@ from flask import Blueprint, request, jsonify, url_for, redirect
 from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt_claims
 )
-from nani import app
+from nani import app, untruce
 from datetime import datetime, timedelta
 import random
 from nani.src.database import Database
 from .pretty import Pretty, statuss
 from .commands import Commands
-# from . import appy
 import nani.models.starter.errors as NodeErrors
-from .errors import NodeNotExistsError
 from nani.models.groups.group import Group
 
 
@@ -20,17 +18,21 @@ collection = app.config['COLLECTION']
 timeout = app.config['TIMEOUT']
 lastreach = app.config['LASTREACH']
 
-print(type(collection))
-print(type(timeout))
-print(type(lastreach))
+# print(type(collection))
+# print(type(timeout))
+# print(type(lastreach))
 
 appy = Blueprint('appy', __name__)
 
 @appy.route('/store', methods=['POST'])
 def hello():
-    print(Database.DATABASE)
     request_data = request.get_json()
+    print(request_data)
     data = Database.find_one(collection, {'mac': request_data['mac']})
+    if data is None:
+        print(untruce)
+        untruce.add(request_data['mac'])
+        return {'message': 'Unknown'}
 
     if data is not None:
         Database.update(collection, query={'mac': request_data['mac']}, data={"$set": {'reporte': datetime.now()}})
@@ -70,14 +72,16 @@ def hello():
 @jwt_required
 def exec(mac):
     request_data = request.get_json()
-    try:
-        if Pretty.is_mac_valid(mac):
-            pass
-    except NodeErrors.NodeNotExistsError as e:
-        return jsonify(message=e.message), 400
     user = get_jwt_identity()
     claims = get_jwt_claims()
     if claims['is_admin'] is not True:
+        try:
+            if Pretty.is_mac_valid(mac):
+                pass
+        except NodeErrors.NodeNotExistsError as e:
+            return jsonify(message=e.message), 400
+        except NodeErrors.NodeInActiveError as e:
+            return jsonify(message=e.message), 400
         auth = Group.find_user_and_node_in_same_group(mac, user)
         if auth is not True:
             return jsonify(message='You are not Authorised to access this system'), 401
@@ -89,7 +93,6 @@ def exec(mac):
         statuse = statuss(data)
         print(statuse)
         if statuse:
-            print('url_for is working')
             josn = Commands(mac=mac, token=rand, serve='true', command=request_data['command'], tag='false', response='')
             josn.save_to_mongo()
         else:
@@ -172,3 +175,48 @@ def statuslist():
                     s.append(i['mac'])
         return jsonify({'message': s })
     return {'message': 'None'}
+
+
+@appy.route('/node/add/<string:mac>', methods=['POST'])
+def add_node(mac):
+    try:
+        if Pretty.create_node(mac):
+            return jsonify(message='Successfully Node is created'), 200
+    except NodeErrors.NodeAlreadyExistsError as e:
+        return jsonify(message=e.message), 400
+
+
+@appy.route('/node/delete/<string:mac>', methods=['POST'])
+def del_node(mac):
+    try:
+        if Pretty.delete_node(mac):
+            return jsonify(message='Successfully Node is deleted'), 200
+    except NodeErrors.NodeNotExistsError as e:
+        return jsonify(message=e.message), 400
+
+
+@appy.route('/node/active/<string:mac>', methods=['POST'])
+def make_node_active(mac):
+    try:
+        if Pretty.make_node_active(mac):
+            return jsonify(message='Successfully Node is made Active'), 200
+    except NodeErrors.NodeAlreadyActiveError as e:
+        return jsonify(message=e.message), 400
+
+
+@appy.route('/node/inactive/<string:mac>', methods=['POST'])
+def make_node_inactive(mac):
+    try:
+        if Pretty.make_node_inactive(mac):
+            return jsonify(message='Successfully Node is made InActive'), 200
+    except NodeErrors.NodeAlreadyInActiveError as e:
+        return jsonify(message=e.message), 400
+
+@appy.route('/untruce', methods=['GET'])
+def untruce_list():
+    s=[]
+    for i in untruce:
+        s.append(i)
+    # untruce.clear()
+    return jsonify(message=s), 200
+

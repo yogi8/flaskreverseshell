@@ -41,7 +41,7 @@ def register_user():
     request_data = request.get_json()
     username = request_data['username']
     password = request_data['password']
-    is_admin = request_data['is_admin'] if request_data['is_admin'] else False
+    is_admin = request_data['is_admin'] if 'is_admin' in request_data else False
 
     try:
         if User.register_user(username, password, is_admin):
@@ -84,16 +84,50 @@ def make_user_inactive(username):
         return jsonify(message=e.message), 400
 
 
-@user_blueprint.route('/changeusername/<string:username>/<string:newusername>', methods=['POST'])
-def change_username(username, newusername):
+@user_blueprint.route('/admin/change_username/<string:username>/<string:new_username>', methods=['POST'])
+@admin_required
+def change_users_username(username, new_username):
     if username is 'admin':
         return jsonify(message='Admin Username can not be changed'), 400
-    pass
+    try:
+        if User.change_username(username, new_username):
+            return jsonify(message='Successfully Username is Changed'), 200
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
 
 
-@user_blueprint.route('/changepassword/<string:username>/<string:password>', methods=['POST'])
-def change_password(username, password):
-    pass
+@user_blueprint.route('/admin/change_password/<string:username>/<string:new_password>', methods=['POST'])
+@admin_required
+def change_users_password(username, new_password):
+    try:
+        if User.change_password(username, new_password):
+            return jsonify(message='Successfully Password is Changed'), 200
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
+
+
+@user_blueprint.route('/change_username/<string:new_username>', methods=['POST'])
+@jwt_required
+def change_username(new_username):
+    username = get_jwt_identity()
+    if username is 'admin':
+        return jsonify(message='Admin Username can not be changed'), 400
+    try:
+        if User.change_username(username, new_username):
+            return jsonify(message='Successfully Username is Changed'), 200
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
+
+
+@user_blueprint.route('/change_password/<string:new_password>', methods=['POST'])
+@jwt_required
+def change_password(new_password):
+    username = get_jwt_identity()
+    try:
+        if User.change_password(username, new_password):
+            return jsonify(message='Successfully Password is Changed'), 200
+    except UserErrors.UserNotExistsError as e:
+        return jsonify(message=e.message), 400
 
 
 @user_blueprint.route('/delete/<string:username>', methods=['POST'])

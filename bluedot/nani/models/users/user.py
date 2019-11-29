@@ -41,7 +41,7 @@ class User:
         if user_data is not None:
             raise UserErrors.UserAlreadyRegisteredError("Username Already Exists")
 
-        User(username, Utils.hash_password(password), **kwargs).save_to_db()
+        User(username=username, password=Utils.hash_password(password), **kwargs).save_to_db()
 
         return True
 
@@ -66,20 +66,20 @@ class User:
         return True
 
     @staticmethod
-    def change_username(username, newusername):
+    def change_username(username, new_username):
         user_data = Database.find_one(collection, {'username': username})
         if user_data is None:
             raise UserErrors.UserNotExistsError("Your User doesn't Exist")
-        Database.update(collection=collection, query={'username': username}, data={"$set": {'username': newusername}})
+        Database.update(collection=collection, query={'username': username}, data={"$set": {'username': new_username}})
         return True
 
     @staticmethod
-    def change_password(username, password):
+    def change_password(username, new_password):
         user_data = Database.find_one(collection, {'username': username})
         if user_data is None:
             raise UserErrors.UserNotExistsError("Your User doesn't Exist")
         Database.update(collection=collection, query={'username': username},
-                        data={"$set": {'password': Utils.hash_password(password)}})
+                        data={"$set": {'password': Utils.hash_password(new_password)}})
         return True
 
     @staticmethod

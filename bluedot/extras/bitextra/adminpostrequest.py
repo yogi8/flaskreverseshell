@@ -18,7 +18,7 @@ class Retro:
         self.access_token = access_token
         self.logged_in = self.login()
 
-    def login(self):
+    def login(self):                                     # extra decorator needed
         url = 'http://192.168.1.5:5000/user/login'
         data = {'username': self.username, 'password': self.password}
         response = requests.post(url, json=data)
@@ -47,8 +47,10 @@ class Retro:
             response = requests.post(url, json=data, headers=head)
         return response
 
+# user
+
     @if_logged_in
-    def register_user(self, username, password, is_admin=False):
+    def register_user(self, username, password, is_admin=False):            # extra decorator needed
         url = 'http://192.168.1.5:5000/user/register'
         data = {'username': username, 'password': password, 'is_admin': is_admin}
         response = self.requeste(url, data=data, post=True)
@@ -77,12 +79,36 @@ class Retro:
         print(a)
 
     @if_logged_in
-    def change_username(self):
-        pass
+    def change_username(self, new_username):            # extra decorator needed
+        url = 'http://192.168.1.5:5000/user/change_username/' + new_username
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
 
     @if_logged_in
-    def change_password(self):
-        pass
+    def change_password(self, new_password):           # extra decorator needed
+        url = 'http://192.168.1.5:5000/user/change_password/' + new_password
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
+
+    @if_logged_in
+    def change_users_username(self, username, new_username):        # extra decorator needed
+        url = 'http://192.168.1.5:5000/user/admin/change_username/' + username + '/' + new_username
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
+
+    @if_logged_in
+    def change_users_password(self, username, new_password):          # extra decorator needed
+        url = 'http://192.168.1.5:5000/user/admin/change_password/' + username + '/' + new_password
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
+
+
+# group
+
 
     @if_logged_in
     def add_group(self, gname):
@@ -140,18 +166,41 @@ class Retro:
         a = response.json()
         print(a)
 
-    @if_logged_in
-    def add_node(self,node):
-        pass
+# nodes
 
     @if_logged_in
-    def del_node(self, node):   # deleting a node should be also deleted from all groups
-        pass
+    def add_node(self, node):
+        url = 'http://192.168.1.5:5000/node/add/' + node
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
+
+    @if_logged_in
+    def del_node(self, node):
+        url = 'http://192.168.1.5:5000/node/delete/' + node
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
 
     @if_logged_in
     def make_node_active(self, node):
-        pass
+        url = 'http://192.168.1.5:5000/node/active/' + node
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
 
     @if_logged_in
-    def make_group_inactive(self, node):
-        pass
+    def make_node_inactive(self, node):
+        url = 'http://192.168.1.5:5000/node/inactive/' + node
+        response = self.requeste(url, post=True)
+        a = response.json()
+        print(a)
+
+# untruce
+
+    @if_logged_in
+    def untruce_list(self):
+        url = 'http://192.168.1.5:5000/untruce'
+        response = self.requeste(url, get=True)
+        a = response.json()
+        print(a)

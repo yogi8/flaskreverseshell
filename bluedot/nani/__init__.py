@@ -14,6 +14,7 @@ app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access'] # ['access', 'refresh']
 
 jwt = JWTManager(app)
 blacklist = set()
+untruce =set()
 
 
 def admin_required(fn):

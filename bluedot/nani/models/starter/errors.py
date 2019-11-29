@@ -15,3 +15,6 @@ class NodeAlreadyActiveError(NodeError):
 
 class NodeAlreadyInActiveError(NodeError):
     pass
+
+class NodeInActiveError(NodeError):
+    pass

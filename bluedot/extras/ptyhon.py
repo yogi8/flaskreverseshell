@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import requests, subprocess, time, os, base64
-data = {'mac': 'abcd'}
+data = {'mac': 'abcdef'}
 url = 'http://192.168.1.5:5000/store'
 #response = requests.post(url, json=data)
 #print(response.content)
