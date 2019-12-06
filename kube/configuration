@@ -1,0 +1,208 @@
+Commands and Arguments:
+"""
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper-pod
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    command: ["sleep2.0"]  -->ENTRYPOINT in Docker
+    args: ["10"]           -->CMD in Docker
+  - name: redis                 -->for creating multiple containers in single pod 
+    image: redis:1.3
+"""
+
+Pod Edit:
+kubectl edit pod <pod name>
+-->for editing a pod we need to delete and update the yaml and recreate
+-->if edited it will open and save as "/tmp/kubectl-edit-ccvrq.yaml" im /tmp folder
+-->A copy of the file with your changes is saved in above /tmp path
+--->For example you cannot edit the environment variables, service accounts, resource limits etc
+
+Deployment Edit:
+With Deployments you can easily edit any field/property of the POD template. Since the pod template is a child of the deployment specification,  with every change the deployment will automatically delete and create a new pod with the new changes
+#kubectl edit deployment my-deployment
+
+Environment Variables:
+"""
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper-pod
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    ports:
+      - containerPort: 8080
+    env:
+      - name: PYTHONPATH
+        value: /home/yogo
+  - name: redis                 -->for creating multiple containers in single pod 
+    image: redis:1.3
+"""
+
+ConfigMap:
+Imperative command:
+kubectl create configmap \
+     <config-name> --from-literal=<key>=<value>
+kubectl create configmap \
+     mysql-config --from-literal=PYTHONPATH=/home/yogo
+Imperative command:
+kubectl create configmap \
+     <config-name> --from-file=<path-to-file>
+kubectl create configmap \
+     mysql-config --from-file=app_config.properties
+
+"""
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+data:
+  PYTHONPATH: /home/yogo
+  BASHRC: random
+"""
+kubectl get configmaps
+kubectl describe configmaps
+"""
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper-pod
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    ports:
+      - containerPort: 8080
+    envFrom:
+      - configMapKeyRef:
+            name: mysql-config
+  - name: redis                 -->for creating multiple containers in single pod 
+    image: redis:1.3
+    env:
+      - name: adding only single enironment variable from a configmap 
+        valueFrom:
+          configMapKeyRef:
+            name: mysql-config
+            key: PYTHONPATH
+"""
+Samples:
+%%%
+(ConfigMap)
+env:
+  - name: PYTHONPATH
+    valueFrom:
+        configMapKeyRef:
+(SecretKey)
+env:
+  - name: PYTHONPATH
+    valueFrom:
+        secretKeyRef:
+%%%
+(Extras)
+volumes:
+- name: mysql-config-volume
+  configMap:
+    name: mysql-config
+Secret:
+Imperative command:
+kubectl create secret generic \
+     <secret-name> --from-literal=<key>=<value>
+kubectl create secret generic \
+     mysql-secret --from-literal=MYSQL_PWD=1234 \
+                  --from-literal=MONGO_PWD=1234
+Imperative command:
+kubectl create secret generic \
+     <secret-name> --from-file=<path-to-file>
+kubectl create secret generic \
+     mysql-secret --from-file=mysql_secret.properties
+"""
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+data:
+  MYSQL_PWD: 1234
+  MONGO_PWD: 1234
+"""
+kubectl get secrets
+kubectl describe secrets
+kubectl get secret mysql-secret -o yaml
+echo -n '1234' | base64
+echo -n 'grtgrt-=' | base64 --decode
+"""
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper-pod
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    ports:
+      - containerPort: 8080
+    envFrom:
+      - secretRef:
+            name: mysql-secret
+  - name: redis                 -->for creating multiple containers in single pod 
+    image: redis:1.3
+    env:
+      - name: adding only single enironment variable from a configmap 
+        valueFrom:
+          secretKeyRef:
+            name: mysql-secret
+            key: MYSQL_PWD
+"""
+(Extras)
+volumes:
+- name: mysql-secret-volume
+  secret:
+    secretName: mysql-secret
+
+ls /opt/mysql-secret-volumes
+cat /opt/mysql-secret-volumes/MYSQL_PWD
+
+
+Security Contexts:
+#settings on container will overwrite settings on pod
+#settings on pod will replicate on all containers
+#settings on container will be only for that container
+(settings on pod)
+"""
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper-pod
+spec:
+  securityContext:
+    runAsUser: sam_tally
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    ports:
+      - containerPort: 8080
+"""
+(settings on container)
+-->capabilities are supported to container level only
+"""
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper-pod
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    ports:
+      - containerPort: 8080
+    securityContext:
+      runAsUser: sam_tally
+      capabilities:
+          add: ["MAC_ADMIN"]
+"""

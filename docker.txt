@@ -80,3 +80,56 @@ docker build . -t name(docker name)            --->builds a container from docke
 docker build . -t username/name(docker name)   --->docker accounts username used before pushing to repository.
 docker push username/docker                    --->for pushing image to repository.
 docker login                                   --->docker login.
+
+
+Docker build:(commands and arguments)
+valid:
+CMD command param1
+CMD sleep 5
+CMD [“command”, “param1”]
+CMD [“sleep”, “5”]
+
+Not valid:
+CMD [“sleep 5”]
+
+-----------------------------------
+Arguments:
+FROM Ubuntu
+CMD sleep 5
+
+use cases:
+docker run ubuntu-sleeper sleep 10
+docker run ubuntu-sleeper sleep 15
+
+------------------------------------------
+FROM Ubuntu
+ENTRYPOINT [“sleep”]
+
+use cases:
+docker run ubuntu-sleeper 10   ---same as sleep 10
+docker run ubuntu-sleeper 14   ---same as sleep 14
+docker run ubuntu-sleeper      ---if empty "sleep: missing operand Try 'sleep --help' for more information." error rises.
+--------------------------------------------------
+
+FROM Ubuntu
+ENTRYPOINT [“sleep”]
+CMD [“5”]
+
+use cases:
+docker run ubuntu-sleeper                           ---same as sleep 5
+docker run ubuntu-sleeper 10                        ---same as sleep 10
+docker run --entrypoint sleep2.0 ubuntu-sleeper 10  ---same as sleep2.0 10
+-------------------------------------------------------
+docker run -e PYTHOPATH=/home/yogo nginx   -->setting environment variable
+
+
+
+Docker Security:
+-->in docker build file add USER=sam_tally -->for giving access to sam_tally to that image and container
+or
+docker run --user=sam_tally ubuntu
+cat /usr/include/linux/capability.h
+-->by default docker disables few root features for any docker-user
+docker run --cap-add MAC_ADMIN ubuntu -->for adding few feature in that container to that user
+docker run --cap-drop KILL ubuntu     -->for removing few feature in that container to that user
+docker run --priveleged ubuntu        -->giving all priveleges in that container
